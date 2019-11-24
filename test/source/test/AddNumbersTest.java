@@ -59,4 +59,13 @@ public class AddNumbersTest {
         assertThat(StringCalculator.add("//[:::]\n1:::2:::3"), is(6));
     }
 
+    @Test
+    void testMultipleDelimiters() throws NegativeNumberException {
+        assertThat(StringCalculator.add("//[:][°]\n1:2°3"), is(6));
+    }
+
+    @Test
+    void finalTest() throws NegativeNumberException {
+        assertThat(StringCalculator.add("//[:][°][;;;]\n1:2°3;;;4"), is(10));
+    }
 }
