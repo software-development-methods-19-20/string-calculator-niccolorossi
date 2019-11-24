@@ -10,34 +10,32 @@ public class StringCalculator {
 
     public static int add(String numbers) throws NegativeNumberException {
 
-        List<String> separators = new ArrayList<>();
-        separators.add("\n");
-        separators.add(",");
-
         if (numbers.isEmpty()) {
             return 0;
-        } else if (separators.stream().anyMatch(numbers::contains)) {
+        } else if (numbers.length() == 1) {
+            return Integer.parseInt(numbers);
+        } else {
+            List<String> separators = new ArrayList<>();
+            separators.add("\n");
+            separators.add(",");
 
             if (needsPreprocessing(numbers)) {
                 separators.add(newSeparator(numbers));
                 numbers = preprocessedString(numbers);
             }
 
-            String joinedSeparators = separators.stream().reduce("", (x,y)->x+y+"|");
-            int jsLength = joinedSeparators.length();
-            joinedSeparators = joinedSeparators.substring(0, jsLength-1);
+            String separatorsRegex = separators.stream().reduce("", (x,y)->x+y+"|");
+            separatorsRegex = separatorsRegex.substring(0, separatorsRegex.length()-1);
 
-            List<String> tokensList = Arrays.asList(numbers.split(joinedSeparators));
+            List<String> tokensList = Arrays.asList(numbers.split(separatorsRegex));
             List<Integer> integersList = tokensList.stream().map(x -> Integer.parseInt(x)).collect(Collectors.toList());
 
             List<Integer> negativeNums = integersList.stream().filter(x -> x <0).collect(Collectors.toList());
             if (!negativeNums.isEmpty()) throw new NegativeNumberException("Negatives not allowed: " + negativeNums.toString());
 
             return integersList.stream().filter(x -> x < 1001).reduce(0, (x,y)->x+y);
-        } else {
-            return Integer.parseInt(numbers);
-        }
 
+        }
     }
 
     private static boolean needsPreprocessing(String numbers) {

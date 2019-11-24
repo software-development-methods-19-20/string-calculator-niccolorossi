@@ -59,5 +59,4 @@ public class AddNumbersTest {
         assertThat(StringCalculator.add("//[:::]\n1:::2:::3"), is(6));
     }
 
-
 }
