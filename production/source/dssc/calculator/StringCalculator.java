@@ -2,24 +2,63 @@ package dssc.calculator;
 
 import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 
 public class StringCalculator {
 
-    public static int add(String numbers) {
+    public static int add(String numbers) throws NegativeNumberException {
 
-        List<String> separators = Arrays.asList("\\n", ",");
+        List<String> separators = new ArrayList<>();
+        separators.add("\n");
+        separators.add(",");
 
         if (numbers.isEmpty()) {
             return 0;
-        } else if (separators.stream().anyMatch(x -> numbers.contains(x))) {
-            String joinedSeparators = separators.stream().reduce("", (x,y)->x+y);
-            String separatorsRegex = "[" + joinedSeparators + "]";
-            List<String> tokensList = Arrays.asList(numbers.split(separatorsRegex));
-            return tokensList.stream().map(x -> Integer.parseInt(x)).reduce(0, (x,y)->x+y);
+        } else if (separators.stream().anyMatch(numbers::contains)) {
+
+            if (needsPreprocessing(numbers)) {
+                separators.add(newSeparator(numbers));
+                numbers = preprocessedString(numbers);
+            }
+
+            String joinedSeparators = separators.stream().reduce("", (x,y)->x+y+"|");
+            int jsLength = joinedSeparators.length();
+            joinedSeparators = joinedSeparators.substring(0, jsLength-1);
+
+            List<String> tokensList = Arrays.asList(numbers.split(joinedSeparators));
+            List<Integer> integersList = tokensList.stream().map(x -> Integer.parseInt(x)).collect(Collectors.toList());
+
+            List<Integer> negativeNums = integersList.stream().filter(x -> x <0).collect(Collectors.toList());
+            if (!negativeNums.isEmpty()) throw new NegativeNumberException("Negatives not allowed: " + negativeNums.toString());
+
+            return integersList.stream().filter(x -> x < 1001).reduce(0, (x,y)->x+y);
         } else {
             return Integer.parseInt(numbers);
         }
 
     }
+
+    private static boolean needsPreprocessing(String numbers) {
+        String begin = numbers.substring(0, 2);
+        if (begin.equals("//")) {
+            return true;
+        } else return false;
+    }
+
+    private static String preprocessedString(String numbers) {
+        int index = numbers.indexOf("\n") + 1;
+        return numbers.substring(index);
+    }
+
+    private static String newSeparator(String numbers) {
+        int beginIndex = numbers.indexOf("//")+2;
+        String beginChar = String.valueOf(numbers.charAt(beginIndex));
+        if (beginChar.equals("[")) {
+            int endIndex = numbers.indexOf("]");
+            return numbers.substring(beginIndex+1, endIndex);
+        } else return String.valueOf(numbers.charAt(beginIndex));
+    }
+
 }
